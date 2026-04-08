@@ -1,81 +1,95 @@
 "use client";
 
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { useStore } from '@/store/useStore';
-import { toast } from 'sonner';
+import { useNavigate } from "react-router-dom";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/useAuth";
+import { useStore } from "@/store/useStore";
+
+const formSchema = z.object({
+  email: z.string().email({ message: "Please enter a valid email address." }),
+  password: z.string().min(1, { message: "Password is required." }),
+});
 
 export const LoginPage = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const navigate = useNavigate();
   const { login } = useAuth();
   const { isLoading } = useStore();
-  const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: { email: "", password: "" },
+  });
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      await login(email, password);
-      toast.success('Xush kelibsiz!');
-      navigate('/');
+      await login(values.email, values.password);
+      toast.success("Welcome back!");
+      navigate("/");
     } catch (error: any) {
-      toast.error('Tizimga kirishda xatolik: ' + (error.response?.data?.detail || error.message));
+      toast.error(error.response?.data?.detail || "Failed to sign in");
     }
-  };
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4 text-foreground">
-      <Card className="w-full max-w-md bg-card border shadow-lg">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Tizimga kirish</CardTitle>
-          <CardDescription className="text-center text-muted-foreground">
-            Elektron pochta va parolingizni kiriting
-          </CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Email</label>
-              <Input
-                type="email"
-                placeholder="name@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+    <div className="flex min-h-screen items-center justify-center bg-muted/20 p-4">
+      <div className="w-full max-w-sm">
+        <Form {...form}>
+          <form className="space-y-4 rounded-xl border bg-card p-6 shadow-sm" onSubmit={form.handleSubmit(onSubmit)}>
+            <div className="space-y-2 text-center">
+              <h1 className="text-2xl font-bold">Welcome back</h1>
+              <p className="text-sm text-muted-foreground">Enter your credentials to access your account</p>
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Parol</label>
-              <Input
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col gap-4">
-            <Button 
-              type="submit" 
-              className="w-full" 
-              disabled={isLoading}
-            >
-              {isLoading ? 'Kirilmoqda...' : 'Kirish'}
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input placeholder="you@example.com" type="email" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>Password</FormLabel>
+                  </div>
+                  <FormControl>
+                    <Input placeholder="Enter your password" type="password" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button className="w-full" type="submit" disabled={isLoading}>
+              {isLoading ? "Signing in..." : "Sign In"}
             </Button>
-            <p className="text-sm text-center text-muted-foreground">
-              Hisobingiz yo'qmi?{' '}
-              <Link to="/register" className="text-primary hover:underline">
-                Ro'yxatdan o'ting
-              </Link>
+            <p className="text-center text-sm text-muted-foreground">
+              Don't have an account?{" "}
+              <a className="text-primary hover:underline" href="/register">Sign up</a>
             </p>
-          </CardFooter>
-        </form>
-      </Card>
+          </form>
+        </Form>
+      </div>
     </div>
   );
 };

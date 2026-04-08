@@ -70,5 +70,19 @@ export const useNotes = () => {
     }
   };
 
-  return { fetchNotes, createNote, updateNote, deleteNote };
+  const fetchNote = useCallback(async (noteId: number) => {
+    if (!currentNotebook) return;
+    const uid = currentNotebook.uid || currentNotebook.notebook_uid;
+    if (!uid) return;
+
+    try {
+      const response = await api.get(`/${uid}/note/${noteId}`);
+      return response.data.data;
+    } catch (error) {
+      console.error('Error fetching single note:', error);
+      return null;
+    }
+  }, [currentNotebook]);
+
+  return { fetchNotes, createNote, updateNote, deleteNote, fetchNote };
 };

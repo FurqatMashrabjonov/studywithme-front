@@ -7,7 +7,7 @@ import { ChatArea } from '../chat/ChatArea';
 import { useNotebooks } from '@/hooks/useNotebooks';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useStore } from '@/store/useStore';
-import { ChevronLeft, ChevronRight, Share2, Settings } from 'lucide-react';
+import {ChevronLeft, Share2, Settings, PanelLeft, PanelRight} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   ResizableHandle,
@@ -58,7 +58,7 @@ export const MainLayout: React.FC = () => {
 
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden bg-background text-foreground">
-      <header className="h-14 shrink-0 border-b bg-background/95 px-4 backdrop-blur">
+      <header className="h-14 shrink-0 bg-slate-200 px-4 backdrop-blur">
         <div className="mx-auto flex h-full w-full items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Button
@@ -113,26 +113,26 @@ export const MainLayout: React.FC = () => {
         </div>
       </header>
 
-      <div className="min-h-0 flex-1 p-2">
+      <div className="min-h-0 flex-1 p-2 bg-slate-200">
         <ResizablePanelGroup orientation="horizontal" className="h-full w-full gap-2" id="main-layout-group">
         {isLeftOpen ? (
           <>
             <ResizablePanel defaultSize="28%" minSize="20%" maxSize="40%" id="left-sidebar-panel">
-              <div className="h-full w-full min-h-0 min-w-0 overflow-hidden rounded-2xl border bg-muted/5">
+              <div className="h-full w-full min-h-0 min-w-0 overflow-hidden rounded-2xl border bg-background">
                 <LeftSidebar onToggle={() => setIsLeftOpen(false)} />
               </div>
             </ResizablePanel>
             <ResizableHandle />
           </>
         ) : (
-          <div className="flex h-full w-11 items-start justify-center border-r bg-muted/20 pt-3">
+          <div className="flex h-full w-11 items-start justify-center border-r rounded-xl bg-background pt-3">
             <Button
               variant="ghost"
               size="icon"
               className="h-8 w-8"
               onClick={() => setIsLeftOpen(true)}
             >
-              <ChevronRight className="h-4 w-4" />
+              <PanelRight className="h-4 w-4" />
             </Button>
           </div>
         )}
@@ -150,20 +150,20 @@ export const MainLayout: React.FC = () => {
           <>
             <ResizableHandle />
             <ResizablePanel defaultSize="28%" minSize="20%" maxSize="40%" id="right-sidebar-panel">
-              <div className="h-full w-full min-h-0 min-w-0 overflow-hidden rounded-2xl border bg-muted/5">
+              <div className="h-full w-full min-h-0 min-w-0 overflow-hidden rounded-2xl border bg-background">
                 <RightSidebar onToggle={() => setIsRightOpen(false)} />
               </div>
             </ResizablePanel>
           </>
         ) : (
-          <div className="flex h-full w-11 items-start justify-center border-l bg-muted/20 pt-3">
+          <div className="flex h-full w-11 items-start justify-center border-l bg-background rounded-xl pt-3">
             <Button
               variant="ghost"
               size="icon"
               className="h-8 w-8"
               onClick={() => setIsRightOpen(true)}
             >
-              <ChevronLeft className="h-4 w-4" />
+              <PanelLeft className="h-4 w-4" />
             </Button>
           </div>
         )}

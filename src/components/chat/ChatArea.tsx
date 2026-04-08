@@ -46,7 +46,7 @@ export const ChatArea: React.FC = () => {
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-background">
-      <div className="sticky top-0 z-10 border-b bg-background/90 px-4 py-2 backdrop-blur md:px-8">
+      <div className="sticky top-0 z-10 border-b bg-background/90 px-4 py-2 backdrop-blur ">
         <div className="mx-auto flex max-w-3xl items-center justify-between">
           <p className="text-sm font-semibold">Chat</p>
           <DropdownMenu>

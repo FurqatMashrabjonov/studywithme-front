@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from 'react';
-import { Search, Plus, Globe, Zap, FileText, Check, ChevronLeft } from 'lucide-react';
+import {Search, Plus, Globe, Zap, FileText, Check, PanelLeft} from 'lucide-react';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from '@/components/ui/button';
 
@@ -33,7 +33,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ onToggle }) => {
   };
 
   return (
-    <aside className="flex h-full w-full min-h-0 flex-col bg-muted/30">
+    <aside className="flex h-full w-full min-h-0 flex-col bg-background/50">
       <div className="flex items-center justify-between border-b px-4 py-3">
         <h2 className="text-base font-semibold">Manbalar</h2>
         <Button
@@ -43,7 +43,7 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ onToggle }) => {
           onClick={onToggle}
           title="Chap panelni yopish"
         >
-          <ChevronLeft className="h-4 w-4" />
+          <PanelLeft className="h-4 w-4" />
         </Button>
       </div>
 

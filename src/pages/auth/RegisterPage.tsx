@@ -1,92 +1,107 @@
 "use client";
 
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { useStore } from '@/store/useStore';
-import { toast } from 'sonner';
+import { useNavigate } from "react-router-dom";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/useAuth";
+import { useStore } from "@/store/useStore";
+
+const formSchema = z.object({
+  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+  email: z.string().email({ message: "Please enter a valid email address." }),
+  password: z.string().min(1, { message: "Password is required." }),
+});
 
 export const RegisterPage = () => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const navigate = useNavigate();
   const { register } = useAuth();
   const { isLoading } = useStore();
-  const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: { name: "", email: "", password: "" },
+  });
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      await register(name, email, password);
-      toast.success("Ro'yxatdan o'tish muvaffaqiyatli! Endi tizimga kiring.");
-      navigate('/login');
+      await register(values.name, values.email, values.password);
+      toast.success("Account created successfully!");
+      navigate("/login");
     } catch (error: any) {
-      toast.error('Xatolik: ' + (error.response?.data?.detail || error.message));
+      toast.error(error.response?.data?.detail || "Failed to register");
     }
-  };
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4 text-foreground">
-      <Card className="w-full max-w-md bg-card border shadow-lg">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Ro'yxatdan o'tish</CardTitle>
-          <CardDescription className="text-center text-muted-foreground">
-            Yangi hisob yaratish uchun ma'lumotlarni kiriting
-          </CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Ism</label>
-              <Input
-                type="text"
-                placeholder="Ismingiz"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-              />
+    <div className="flex min-h-screen items-center justify-center bg-muted/20 p-4">
+      <div className="w-full max-w-sm">
+        <Form {...form}>
+          <form className="space-y-4 rounded-xl border bg-card p-6 shadow-sm" onSubmit={form.handleSubmit(onSubmit)}>
+            <div className="space-y-2 text-center">
+              <h1 className="text-2xl font-bold">Create account</h1>
+              <p className="text-sm text-muted-foreground">Join us to start analyzing your notes</p>
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Email</label>
-              <Input
-                type="email"
-                placeholder="name@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Parol</label>
-              <Input
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col gap-4">
-            <Button 
-              type="submit" 
-              className="w-full" 
-              disabled={isLoading}
-            >
-              {isLoading ? 'Yuklanmoqda...' : "Ro'yxatdan o'tish"}
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="John Doe" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input placeholder="you@example.com" type="email" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Create a password" type="password" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button className="w-full" type="submit" disabled={isLoading}>
+              {isLoading ? "Registering..." : "Sign Up"}
             </Button>
-            <p className="text-sm text-center text-muted-foreground">
-              Hisobingiz bormi?{' '}
-              <Link to="/login" className="text-primary hover:underline">
-                Tizimga kirish
-              </Link>
+            <p className="text-center text-sm text-muted-foreground">
+              Already have an account?{" "}
+              <a className="text-primary hover:underline" href="/login">Sign in</a>
             </p>
-          </CardFooter>
-        </form>
-      </Card>
+          </form>
+        </Form>
+      </div>
     </div>
   );
 };

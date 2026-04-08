@@ -1,13 +1,26 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { BrainCircuit, ChevronRight, FileText, BarChart3, Presentation, Sparkles, Video, Trash2, ArrowLeft, MoreVertical, Edit2 } from 'lucide-react';
+import {
+  BrainCircuit,
+  ChevronRight,
+  FileText,
+  BarChart3,
+  Presentation,
+  Sparkles,
+  Video,
+  Trash2,
+  MoreVertical,
+  Edit2,
+  ChevronLeft, PanelRight
+} from 'lucide-react';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from '@/components/ui/button';
 import { useNotes } from '@/hooks/useNotes';
 import { useStore } from '@/store/useStore';
 import { toast } from 'sonner';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { MarkdownEditor } from '@/components/ui/markdown-editor';
 
 const studioActions = [
   { id: 'audio', icon: Sparkles, label: 'Audio tahlil', color: 'bg-blue-100 text-blue-700' },
@@ -32,43 +45,59 @@ interface RightSidebarProps {
 
 export const RightSidebar: React.FC<RightSidebarProps> = ({ onToggle }) => {
   const { notes, currentNotebook } = useStore();
-  const { fetchNotes, createNote, updateNote, deleteNote } = useNotes();
+  const { fetchNotes, createNote, updateNote, deleteNote, fetchNote } = useNotes();
   const [activeNote, setActiveNote] = useState<EditableNote | null>(null);
+  const [activeContent, setActiveContent] = useState('');
 
   useEffect(() => {
-    if (currentNotebook) {
-      fetchNotes();
-    }
+    if (currentNotebook) fetchNotes();
   }, [currentNotebook, fetchNotes]);
+
+  useEffect(() => {
+    if (activeNote && activeNote.id) {
+      fetchNote(activeNote.id).then(fullNote => {
+        if (fullNote) {
+            setActiveNote(fullNote);
+            setActiveContent(fullNote.content || '');
+        }
+      });
+    }
+  }, [activeNote?.id, fetchNote]);
+
+  useEffect(() => {
+    if (!activeNote) return;
+    
+    const handler = setTimeout(() => {
+      if (activeContent !== activeNote.content) {
+        updateNote(activeNote.id, activeNote.name || activeNote.title, activeContent);
+      }
+    }, 2000);
+
+    return () => clearTimeout(handler);
+  }, [activeContent, activeNote, updateNote]);
 
   const handleAddNote = async () => {
     try {
       const newNote = await createNote();
-      toast.success('Eslatma yaratildi');
+      toast.success('Qayd yaratildi');
       setActiveNote(newNote);
+      setActiveContent(newNote.content || '');
     } catch {
-      toast.error('Eslatma yaratishda xatolik yuz berdi');
+      toast.error('Qayd yaratishda xatolik yuz berdi');
     }
   };
 
   const handleDeleteNote = async (noteId: number) => {
-    if (!confirm('Eslatmani o\'chirmoqchimisiz?')) return;
+    if (!confirm('Qaydni o\'chirmoqchimisiz?')) return;
     try {
       await deleteNote(noteId);
-      toast.success('Eslatma o\'chirildi');
-      if (activeNote?.id === noteId) setActiveNote(null);
+      toast.success('Qayd o\'chirildi');
+      if (activeNote?.id === noteId) {
+        setActiveNote(null);
+        setActiveContent('');
+      }
     } catch {
-      toast.error('Eslatmani o\'chirishda xatolik');
-    }
-  };
-
-  const handleSaveContent = async (content: string) => {
-    if (!activeNote) return;
-    try {
-      await updateNote(activeNote.id, activeNote.name || activeNote.title, content);
-      setActiveNote(prev => prev ? { ...prev, content } : null);
-    } catch {
-      toast.error('Saqlashda xatolik');
+      toast.error('Qaydni o\'chirishda xatolik');
     }
   };
 
@@ -77,22 +106,20 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ onToggle }) => {
       <aside className="flex h-full w-full min-h-0 flex-col bg-background">
         <div className="flex items-center gap-2 border-b px-4 py-3">
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setActiveNote(null)}>
-            <ArrowLeft className="h-4 w-4" />
+            <ChevronLeft className="h-4 w-4" />
           </Button>
-          <h2 className="flex-1 text-sm font-semibold truncate">Eslatmani tahrirlash</h2>
+          <h2 className="flex-1 text-sm font-semibold truncate">Qaydni tahrirlash</h2>
         </div>
         <div className="flex-1 p-4">
            <input 
              className="w-full text-lg font-bold outline-none mb-4"
              value={activeNote.name || activeNote.title || ''}
              onChange={(e) => setActiveNote({...activeNote, name: e.target.value})}
-             onBlur={() => updateNote(activeNote.id, activeNote.name || activeNote.title, activeNote.content)}
+             onBlur={() => updateNote(activeNote.id, activeNote.name || activeNote.title, activeContent)}
            />
-           <textarea 
-             className="w-full h-[calc(100%-60px)] resize-none outline-none text-sm text-muted-foreground"
-             placeholder="Eslatma mazmunini kiriting (markdown)..."
-             value={activeNote.content || ''}
-             onChange={(e) => handleSaveContent(e.target.value)}
+           <MarkdownEditor
+             value={activeContent}
+             onChange={(content) => setActiveContent(content)}
            />
         </div>
       </aside>
@@ -100,11 +127,11 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ onToggle }) => {
   }
 
   return (
-    <aside className="flex h-full w-full min-h-0 flex-col bg-muted/30">
+    <aside className="flex h-full w-full min-h-0 flex-col bg-background/50">
       <div className="flex items-center justify-between border-b px-4 py-3">
         <h2 className="text-base font-semibold">Studiya</h2>
         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onToggle} title="O'ng panelni yopish">
-          <ChevronRight className="h-4 w-4" />
+          <PanelRight className="h-4 w-4" />
         </Button>
       </div>
 
@@ -137,14 +164,14 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ onToggle }) => {
             >
               <FileText className="h-5 w-5 text-muted-foreground shrink-0" />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium leading-none">{note.title || note.name || 'Nomsiz eslatma'}</p>
+                <p className="truncate text-sm font-medium leading-none">{note.title || note.name || 'Nomsiz qayd'}</p>
                 <p className="text-xs text-muted-foreground mt-1.5">{note.created_at_formatted || 'Yaqinda'}</p>
               </div>
               <DropdownMenu>
-              <DropdownMenuTrigger onClick={(e) => e.stopPropagation()}>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                <DropdownMenuTrigger onClick={(e) => { e.stopPropagation(); }}>
+                    <div className="h-8 w-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                       <MoreVertical className="h-4 w-4" />
-                    </Button>
+                    </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => setActiveNote(note)}>
@@ -167,7 +194,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ onToggle }) => {
 
       <div className="border-t p-3">
         <Button variant="outline" className="h-10 w-full justify-center gap-2 rounded-xl bg-background hover:bg-muted" onClick={handleAddNote}>
-          Eslatma qo'shish
+          Qayd qo'shish
         </Button>
       </div>
     </aside>
