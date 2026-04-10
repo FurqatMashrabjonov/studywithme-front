@@ -54,7 +54,8 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ onToggle }) => {
   }, [currentNotebook, fetchNotes]);
 
   useEffect(() => {
-    if (activeNote && activeNote.id) {
+    // Agar activeNote bor bo'lsa va uning contenti hali yo'q bo'lsa (ro'yxatdan tanlanganda)
+    if (activeNote && activeNote.id && activeNote.content === undefined) {
       fetchNote(activeNote.id).then(fullNote => {
         if (fullNote) {
             setActiveNote(fullNote);
@@ -78,11 +79,15 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ onToggle }) => {
 
   const handleAddNote = async () => {
     try {
+      // 1. API orqali yaratishni kutamiz
       const newNote = await createNote();
-      toast.success('Qayd yaratildi');
-      setActiveNote(newNote);
-      setActiveContent(newNote.content || '');
-    } catch {
+      if (newNote) {
+        toast.success('Qayd yaratildi');
+        // 2. Yaratilgan qaydni darhol ko'rsatamiz (ichida contenti bilan)
+        setActiveNote(newNote);
+        setActiveContent(newNote.content || '');
+      }
+    } catch (error) {
       toast.error('Qayd yaratishda xatolik yuz berdi');
     }
   };

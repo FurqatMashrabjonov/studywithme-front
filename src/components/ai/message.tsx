@@ -14,7 +14,7 @@ export const Message = ({ from, className, ...props }: MessageProps) => {
   return (
     <div
       className={cn(
-        "flex w-full",
+        "flex w-full mb-6",
         from === "user" ? "justify-end" : "justify-start",
         className,
       )}
@@ -32,10 +32,10 @@ export const MessageContent = ({ from = "assistant", className, ...props }: Mess
   return (
     <div
       className={cn(
-        "max-w-[90%] rounded-2xl border px-4 py-3 text-sm leading-relaxed md:max-w-[82%]",
-        from === "user"
-          ? "rounded-br-md border-primary/25 bg-primary/10"
-          : "rounded-bl-md bg-background",
+        "text-[15px] leading-relaxed relative",
+        from === "user" 
+          ? "bg-secondary text-secondary-foreground px-5 py-3.5 rounded-3xl rounded-tr-sm max-w-[85%] md:max-w-[75%]" 
+          : "bg-background border shadow-sm rounded-2xl p-5 md:p-6 w-full max-w-full",
         className,
       )}
       {...props}

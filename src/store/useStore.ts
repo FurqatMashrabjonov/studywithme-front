@@ -26,6 +26,7 @@ interface Note {
 interface Message {
   role: 'user' | 'assistant';
   message: string;
+  steps?: { type: string; text: string; finished?: boolean }[];
 }
 
 interface AppState {
@@ -45,6 +46,7 @@ interface AppState {
   clearNotes: () => void;
   setChatHistory: (history: Message[]) => void;
   addChatMessage: (message: Message) => void;
+  updateLastAssistantMessage: (payload: { text?: string; step?: { type: string; text: string; finished?: boolean } }, overwrite?: boolean) => void;
   setLoading: (loading: boolean) => void;
   logout: () => void;
 }
@@ -77,8 +79,56 @@ export const useStore = create<AppState>()(
         set((state) => {
           const current = Array.isArray(state.chatHistory) ? state.chatHistory : [];
           return {
-            chatHistory: [...current, message],
+            chatHistory: [...current, { ...message, steps: message.steps || [] }],
           };
+        }),
+      updateLastAssistantMessage: (payload, overwrite = false) =>
+        set((state) => {
+          const current = Array.isArray(state.chatHistory) ? [...state.chatHistory] : [];
+          if (current.length > 0 && current[current.length - 1].role === 'assistant') {
+            const lastMsg = { ...current[current.length - 1] };
+            
+            if (payload.text !== undefined) {
+                if (overwrite) {
+                    lastMsg.message = payload.text;
+                } else {
+                    lastMsg.message += payload.text;
+                }
+            }
+            
+            if (payload.step) {
+                if (!lastMsg.steps) lastMsg.steps = [];
+                
+                // Bitta tipdagi oxirgi tugallanmagan (finished === false) stepni topamiz
+                let unfinishedIndex = -1;
+                for (let i = lastMsg.steps.length - 1; i >= 0; i--) {
+                    if (lastMsg.steps[i].type === payload.step.type && lastMsg.steps[i].finished === false) {
+                        unfinishedIndex = i;
+                        break;
+                    }
+                }
+                
+                if (unfinishedIndex !== -1) {
+                    // Agar topilsa, o'shani holatini yangilaymiz. Text agar kelgan bo'lsa yangilaymiz.
+                    lastMsg.steps[unfinishedIndex] = {
+                        ...lastMsg.steps[unfinishedIndex],
+                        text: payload.step.text || lastMsg.steps[unfinishedIndex].text,
+                        finished: payload.step.finished
+                    };
+                } else {
+                    // Agar ochiq step topilmasa, lekin xuddi shunday (type va text bir xil) step allaqachon completed bo'lsa, duplikat qo'shmaymiz.
+                    // Yoki faqat "finished: true" o'zi kelsa (yangi text siz) uni ham ignore qilishimiz mumkin.
+                    // Asosiysi, agar rostdan yangi narsa bo'lsa qo'shamiz.
+                    const isExactDuplicate = lastMsg.steps.some(s => s.type === payload.step?.type && s.text === payload.step?.text && s.finished === payload.step?.finished);
+                    if (!isExactDuplicate) {
+                        lastMsg.steps.push(payload.step);
+                    }
+                }
+            }
+            
+            current[current.length - 1] = lastMsg;
+          }
+          return { chatHistory: current };
         }),
       setLoading: (isLoading) => set({ isLoading }),
       logout: () => {

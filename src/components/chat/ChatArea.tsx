@@ -2,12 +2,13 @@
 
 import React, { useEffect } from 'react';
 import { ChatInput } from './ChatInput';
-import { ThumbsUp, ThumbsDown, Copy, Bookmark, Sparkles, MessageSquare, MoreVertical } from 'lucide-react';
+import { Sparkles, Search, Cog, Loader2, MoreVertical, MessageSquare, Bookmark, ThumbsUp, ThumbsDown, Copy } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { useStore } from '@/store/useStore';
 import { useChat } from '@/hooks/useChat';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 import {
   Conversation,
   ConversationContent,
@@ -21,6 +22,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  ChainOfThought,
+  ChainOfThoughtHeader,
+  ChainOfThoughtContent,
+  ChainOfThoughtStep,
+} from '@/components/ai/chain-of-thought';
+
+const LoadingIcon = ({ className, ...props }: any) => <Loader2 className={cn("animate-spin", className)} {...props} />;
 
 export const ChatArea: React.FC = () => {
   const { chatHistory, currentNotebook, isLoading, setChatHistory } = useStore();
@@ -107,40 +116,31 @@ export const ChatArea: React.FC = () => {
                   <Message from={from} key={index} className="animate-in fade-in slide-in-from-bottom-2 duration-500">
                     <MessageContent from={from} className={from === 'assistant' ? 'space-y-4 shadow-sm' : ''}>
                       {from === 'user' ? (
-                        <p className="text-[15px] font-medium leading-relaxed text-foreground">{message.message}</p>
+                        <p className="font-medium whitespace-pre-wrap">{message.message}</p>
                       ) : (
-                        <>
-                          <div className="mb-2 flex items-center gap-2">
-                            <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-primary">
-                              <Sparkles className="h-3.5 w-3.5 text-primary-foreground" />
-                            </div>
-                            <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Study with me</span>
-                          </div>
+                        <div className="flex flex-col w-full">
+                          {/* Chain of Thought (Fikrlash) */}
+                          {message.steps && message.steps.length > 0 && (
+                            <ChainOfThought defaultOpen={message.steps.some(s => s.finished === false)} className="mb-4 bg-muted/30 p-3 rounded-xl border border-muted/50">
+                              <ChainOfThoughtHeader>Fikrlash jarayoni</ChainOfThoughtHeader>
+                              <ChainOfThoughtContent>
+                                {message.steps.map((step, sIdx) => (
+                                  <ChainOfThoughtStep
+                                    key={sIdx}
+                                    label={step.text}
+                                    icon={step.finished === false ? LoadingIcon : (step.type.includes('search') || step.type.includes('web') ? Search : Cog)}
+                                    status={step.finished === false ? "active" : "complete"}
+                                  />
+                                ))}
+                              </ChainOfThoughtContent>
+                            </ChainOfThought>
+                          )}
 
-                          <div className="prose prose-sm max-w-none space-y-4 text-foreground/80 leading-relaxed">
+                          {/* Main Text Content */}
+                          <div className="prose prose-sm md:prose-base max-w-none text-foreground/90 leading-loose">
                             <ReactMarkdown>{message.message}</ReactMarkdown>
                           </div>
-
-                          <div className="mt-4 flex items-center justify-between border-t pt-4">
-                            <div className="flex items-center gap-1">
-                              <Button variant="ghost" size="sm" className="h-8 rounded-full px-3 text-xs text-muted-foreground hover:text-foreground gap-1.5">
-                                <Bookmark className="h-3.5 w-3.5" />
-                                Save to notes
-                              </Button>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground">
-                                <Copy className="h-3.5 w-3.5" />
-                              </Button>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground">
-                                <ThumbsUp className="h-3.5 w-3.5" />
-                              </Button>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground">
-                                <ThumbsDown className="h-3.5 w-3.5" />
-                              </Button>
-                            </div>
-                          </div>
-                        </>
+                        </div>
                       )}
                     </MessageContent>
                   </Message>

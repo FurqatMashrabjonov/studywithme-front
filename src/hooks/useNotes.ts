@@ -33,7 +33,7 @@ export const useNotes = () => {
 
     try {
       const response = await api.post(`/${uid}/note/`);
-      fetchNotes();
+      await fetchNotes(); // Kutamiz
       return response.data.data;
     } catch (error) {
       console.error('Error creating note:', error);
