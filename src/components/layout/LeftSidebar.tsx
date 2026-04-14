@@ -1,9 +1,12 @@
 "use client";
 
 import React, { useMemo, useState } from 'react';
-import {Search, Plus, Globe, Zap, FileText, Check, PanelLeft} from 'lucide-react';
+import {Search, Plus, Globe, Zap, PanelLeft} from 'lucide-react';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from '@/components/ui/button';
+import { useStore } from '@/store/useStore';
+import { Skeleton } from "@/components/ui/skeleton";
+import { SourceList } from './left-sidebar/SourceList';
 
 const fakeSources = [
   { id: 1, name: 'FastAPI arxitekturasi bo\'yicha maqola', type: 'Maqola' },
@@ -19,6 +22,7 @@ interface LeftSidebarProps {
 }
 
 export const LeftSidebar: React.FC<LeftSidebarProps> = ({ onToggle }) => {
+  const { isLoading } = useStore();
   const [query, setQuery] = useState('');
   const [selectedIds, setSelectedIds] = useState<number[]>([1, 2]);
 
@@ -76,31 +80,16 @@ export const LeftSidebar: React.FC<LeftSidebarProps> = ({ onToggle }) => {
       </div>
 
       <div className="px-4 pb-2 text-xs font-medium text-muted-foreground">
-        Tanlangan manbalar: {selectedIds.length}
+        {isLoading ? <Skeleton className="h-3 w-32" /> : `Tanlangan manbalar: ${selectedIds.length}`}
       </div>
 
       <ScrollArea className="min-h-0 flex-1 px-3 pb-3">
-        <div className="space-y-1.5">
-          {filtered.map((source) => {
-            const checked = selectedIds.includes(source.id);
-            return (
-              <button
-                key={source.id}
-                onClick={() => toggle(source.id)}
-                className="flex w-full items-center gap-3 rounded-xl border bg-background px-3 py-2.5 text-left hover:bg-muted/40"
-              >
-                <div className={`flex h-5 w-5 items-center justify-center rounded border ${checked ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-border'}`}>
-                  {checked ? <Check className="h-3.5 w-3.5" /> : null}
-                </div>
-                <FileText className="h-4 w-4 text-muted-foreground" />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{source.name}</p>
-                  <p className="text-xs text-muted-foreground">{source.type}</p>
-                </div>
-              </button>
-            );
-          })}
-        </div>
+        <SourceList 
+          sources={filtered} 
+          selectedIds={selectedIds} 
+          isLoading={isLoading} 
+          onToggle={toggle} 
+        />
       </ScrollArea>
     </aside>
   );

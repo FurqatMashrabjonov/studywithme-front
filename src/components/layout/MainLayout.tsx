@@ -14,12 +14,13 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const MainLayout: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { fetchNotebooks, updateNotebook } = useNotebooks();
-  const { currentNotebook, user, notebooks, setCurrentNotebook } = useStore();
+  const { currentNotebook, user, notebooks, setCurrentNotebook, isLoading } = useStore();
   const [isEditingNotebookName, setIsEditingNotebookName] = useState(false);
   const [notebookNameDraft, setNotebookNameDraft] = useState('');
   const [isLeftOpen, setIsLeftOpen] = useState(true);
@@ -85,6 +86,8 @@ export const MainLayout: React.FC = () => {
                   }
                 }}
               />
+            ) : isLoading && !currentNotebook ? (
+              <Skeleton className="h-5 w-40 rounded-full" />
             ) : (
               <h1
                 className="max-w-[260px] cursor-text truncate text-sm font-semibold"
@@ -94,7 +97,7 @@ export const MainLayout: React.FC = () => {
                   setIsEditingNotebookName(true);
                 }}
               >
-                {currentNotebook?.name || 'Yuklanmoqda...'}
+                {currentNotebook?.name || 'Notebook topilmadi'}
               </h1>
             )}
           </div>

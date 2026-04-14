@@ -84,5 +84,19 @@ export const useNotes = () => {
     }
   }, [currentNotebook]);
 
-  return { fetchNotes, createNote, updateNote, deleteNote, fetchNote };
+  const fetchFlashcard = useCallback(async (flashcardId: number) => {
+    if (!currentNotebook) return;
+    const uid = currentNotebook.uid || currentNotebook.notebook_uid;
+    if (!uid) return;
+
+    try {
+      const response = await api.get(`/${uid}/flashcard/${flashcardId}`);
+      return response.data.data;
+    } catch (error) {
+      console.error('Error fetching flashcard:', error);
+      return null;
+    }
+  }, [currentNotebook]);
+
+  return { fetchNotes, createNote, updateNote, deleteNote, fetchNote, fetchFlashcard };
 };

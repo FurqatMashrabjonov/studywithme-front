@@ -29,6 +29,8 @@ import {
   ChainOfThoughtStep,
 } from '@/components/ai/chain-of-thought';
 
+import { Skeleton } from "@/components/ui/skeleton";
+
 const LoadingIcon = ({ className, ...props }: any) => <Loader2 className={cn("animate-spin", className)} {...props} />;
 
 export const ChatArea: React.FC = () => {
@@ -148,10 +150,10 @@ export const ChatArea: React.FC = () => {
               })}
 
               {isLoading && (
-                <Message from="assistant" className="animate-pulse">
+                <Message from="assistant">
                   <MessageContent from="assistant" className="w-[260px] space-y-2">
-                    <div className="h-2 w-48 rounded-full bg-muted" />
-                    <div className="h-2 w-32 rounded-full bg-muted" />
+                    <Skeleton className="h-4 w-48" />
+                    <Skeleton className="h-4 w-32" />
                   </MessageContent>
                 </Message>
               )}

@@ -19,6 +19,7 @@ interface Note {
   name?: string;
   title?: string;
   content?: string;
+  type?: 'note' | 'flashcard';
   created_at?: string;
   created_at_formatted?: string;
 }
@@ -37,6 +38,7 @@ interface AppState {
   notes: Note[];
   chatHistory: Message[];
   isLoading: boolean;
+  isMaximized: boolean;
   
   setUser: (user: User | null) => void;
   setToken: (token: string | null) => void;
@@ -48,6 +50,7 @@ interface AppState {
   addChatMessage: (message: Message) => void;
   updateLastAssistantMessage: (payload: { text?: string; step?: { type: string; text: string; finished?: boolean } }, overwrite?: boolean) => void;
   setLoading: (loading: boolean) => void;
+  setIsMaximized: (isMaximized: boolean) => void;
   logout: () => void;
 }
 
@@ -61,6 +64,7 @@ export const useStore = create<AppState>()(
       notes: [],
       chatHistory: [],
       isLoading: false,
+      isMaximized: false,
 
       setUser: (user) => set({ user }),
       setToken: (token) => {
@@ -131,6 +135,7 @@ export const useStore = create<AppState>()(
           return { chatHistory: current };
         }),
       setLoading: (isLoading) => set({ isLoading }),
+      setIsMaximized: (isMaximized) => set({ isMaximized }),
       logout: () => {
         localStorage.removeItem('token');
         set({ user: null, token: null, notebooks: [], currentNotebook: null, notes: [], chatHistory: [] });

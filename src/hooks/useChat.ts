@@ -149,6 +149,14 @@ export const useChat = () => {
          useStore.getState().updateLastAssistantMessage({ text: '' }, true);
       }
 
+      // Refresh the notes list after the chat request is fully processed
+      try {
+        const notesResponse = await api.get(`/${uid}/note/`);
+        useStore.getState().setNotes(notesResponse.data.data);
+      } catch (noteError) {
+        console.error('Error refreshing notes after chat:', noteError);
+      }
+
       return true;
     } catch (error) {
       console.error('Error sending message:', error);
